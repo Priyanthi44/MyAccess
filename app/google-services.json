@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "375510660260",
+    "firebase_url": "https://myaccess-58887.firebaseio.com",
+    "project_id": "myaccess-58887",
+    "storage_bucket": "myaccess-58887.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:375510660260:android:cc8ce2386642684c032231",
+        "android_client_info": {
+          "package_name": "com.appzupp.myaccess"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "375510660260-lfn4lqftvvh6ml9vq8bbu765ntrn0b05.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDho5dxFydXaX1omAI6wGMDguz0HQFRKxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "375510660260-lfn4lqftvvh6ml9vq8bbu765ntrn0b05.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
