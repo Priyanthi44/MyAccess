@@ -59,6 +59,10 @@ OnActivityListener mOnActivityListener;
             itemView.setOnClickListener(this);
         }
 
+        public TextView getActivityText() {
+            return activityText;
+        }
+
         @Override
         public void onClick(View view) {
 

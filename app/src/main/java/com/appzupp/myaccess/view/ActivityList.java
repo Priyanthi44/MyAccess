@@ -3,6 +3,7 @@ package com.appzupp.myaccess.view;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -41,10 +43,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 public class ActivityList extends AppCompatActivity implements IActivityList,
-        SwipeRefreshLayout.OnRefreshListener,ActivityListAdapter.OnActivityListener {
+        SwipeRefreshLayout.OnRefreshListener, ActivityListAdapter.OnActivityListener {
     private NewActivity mNewActivity;
     private UpdateActivity mUpdateActivity;
 
@@ -76,9 +76,26 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
         mActivityImagesList = new ArrayList<>();
         mSwipeRefresh.setOnRefreshListener(this);
 
+
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
+
+                deleteActivity(mActivities.get(viewHolder.getAdapterPosition()));
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
         notificationManager = NotificationManagerCompat.from(this);
-        getActivityList();
-        /*
+        // getActivityList();
+
         ActivityListViewModel mViewModel = new ViewModelProvider(this).get(ActivityListViewModel.class);
         mViewModel.getActivities().observe(this, new Observer<List<Activity>>() {
             @Override
@@ -87,18 +104,17 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
                     mActivities.clear();
                 }
                 if (activities != null) {
-                    if(activities.size()>0){
-                    mActivities.addAll(activities);
-                    setActivities();}
+                    if (activities.size() > 0) {
+                        mActivities.addAll(activities);
+                        setActivities();
+                    }
                 }
                 if (mActivityListAdapter != null)
                     mActivityListAdapter.notifyDataSetChanged();
             }
         });
+
         notificationManager = NotificationManagerCompat.from(this);
-
-         */
-
 
 
         initRecycleView();
@@ -117,9 +133,9 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
 
     private void initRecycleView() {
         setActivities();
-       // getActivityList();
+        // getActivityList();
         if (mActivityListAdapter == null) {
-            mActivityListAdapter = new ActivityListAdapter(mActivityNamesList, mActivityImagesList, this,this);
+            mActivityListAdapter = new ActivityListAdapter(mActivityNamesList, mActivityImagesList, this, this);
             GridLayoutManager mGridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
             mRecyclerView.setLayoutManager(mGridLayoutManager);
             mRecyclerView.setAdapter(mActivityListAdapter);
@@ -157,6 +173,7 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
                     Toast.makeText(ActivityList.this, "Created a new activity", Toast.LENGTH_SHORT).show();
+                    mActivityListAdapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(ActivityList.this, "Activity failed", Toast.LENGTH_SHORT).show();
                 }
@@ -179,7 +196,7 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
                 if (task.isSuccessful()) {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         Activity activity = document.toObject(Activity.class);
-                        if(!activity.isActivity_status()) {
+                        if (!activity.isActivity_status()) {
                             mActivities.add(activity);
                             mActivityNamesList.add(activity.getActivity_name());
                             mActivityImagesList.add(activity.getActivity_image());
@@ -196,12 +213,29 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
     }
 
     @Override
-    public void deleteActivity() {
+    public void deleteActivity(final Activity activity) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        DocumentReference noteRef = db
+                .collection("activities")
+                .document(activity.getActivity_id());
+
+        noteRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), activity.getActivity_name() + " deleted", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Delete Failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
     public void updateActivity(Activity activity) {
+
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         DocumentReference actRef = db
@@ -213,15 +247,20 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
         ).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-
+                if (task.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), "Activity Updated", Toast.LENGTH_SHORT).show();
                     mActivityListAdapter.notifyDataSetChanged();
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Update Failed",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Update Failed", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
+        if (activity.isActivity_status()) {
+            viewholder.getActivityText().setTextColor(Color.GREEN);
+        } else {
+            viewholder.getActivityText().setTextColor(Color.RED);
+        }
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(activity.getActivity_name())
@@ -229,8 +268,9 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .build();
-            notificationManager.notify(1, notification);
+        notificationManager.notify(1, notification);
     }
+
     private void createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel1 = new NotificationChannel(
@@ -241,7 +281,7 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
 
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(channel1);
-    }
+        }
     }
 
     @Override
@@ -255,10 +295,17 @@ public class ActivityList extends AppCompatActivity implements IActivityList,
 
     @Override
     public void onActivityClick(int position) {
-       Activity activity= mActivities.get(position);
+        Activity activity = mActivities.get(position);
         mUpdateActivity = new UpdateActivity(activity);
         mUpdateActivity.show(getSupportFragmentManager(), "New Activity");
+        viewholder = (ActivityListAdapter.ViewHolder) mRecyclerView.findViewHolderForAdapterPosition(position);
 
+
+    }
+
+    ActivityListAdapter.ViewHolder viewholder;
+
+    private void changeColor(boolean activity_status, int position) {
 
     }
 }

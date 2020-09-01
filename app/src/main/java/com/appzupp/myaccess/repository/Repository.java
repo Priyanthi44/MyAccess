@@ -28,7 +28,7 @@ public List<Activity> mActivityList;
     public void getActivityList() {
         mActivityList= new ArrayList<>();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference activitiesCollectionReference = db.collection("activities");
+        final CollectionReference activitiesCollectionReference = db.collection("activities");
 
         Query query = activitiesCollectionReference
                 .whereEqualTo("user", FirebaseAuth.getInstance().getUid())
@@ -41,6 +41,7 @@ public List<Activity> mActivityList;
                 if (task.isSuccessful()) {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         Activity activity = document.toObject(Activity.class);
+                        if(!activity.isActivity_status())
                        mActivityList.add(activity);
 
                     }
@@ -56,7 +57,7 @@ public List<Activity> mActivityList;
     }
 
     @Override
-    public void deleteActivity() {
+    public void deleteActivity(Activity activity) {
 
     }
 

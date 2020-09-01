@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.NotificationBuilderWithBuilderAccessor;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.DialogFragment;
@@ -96,7 +97,7 @@ public class UpdateActivity extends DialogFragment implements View.OnClickListen
         switch (view.getId()) {
             case R.id.completed: {
                 //Update Record
-                mActivityName.setBackgroundColor(Color.GREEN);
+                mActivityItem.setActivity_status(true);
                 iActivityList.updateActivity(mActivityItem);
                 //Send notification
 
@@ -104,7 +105,6 @@ public class UpdateActivity extends DialogFragment implements View.OnClickListen
             }
             case R.id.not_completed: {
                 //set color red
-                mActivityName.setBackgroundColor(Color.RED);
                 getDialog().dismiss();
                 break;
             }

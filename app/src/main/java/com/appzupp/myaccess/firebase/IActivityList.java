@@ -13,7 +13,7 @@ public interface IActivityList {
     void getActivityList()
 
     ;
-    void deleteActivity()
+    void deleteActivity(Activity activity)
 
     ;
     void updateActivity(Activity activity)

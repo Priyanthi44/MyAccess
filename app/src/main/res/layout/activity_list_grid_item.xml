@@ -11,6 +11,7 @@
         app:cardCornerRadius="2dp"
         app:cardElevation="10dp"
         app:contentPadding="10dp"
+        android:id="@+id/card_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
